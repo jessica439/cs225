@@ -1,0 +1,188 @@
+// **************************************************************
+// *		   
+// *  quadtree.cpp
+// *		   
+// *  Quadtree class
+// *		   
+// *  CS 225 Spring 2008
+// *		   
+// **************************************************************
+
+#include "quadtree.h"
+
+//default constructor sets root to null
+Quadtree::Quadtree(){
+	imgsize = 0;
+	root=NULL;
+}
+//build quadtree out of PNG by cropping upper left d by d square
+Quadtree::Quadtree(const PNG & source, int resolution){
+	//implement pl0x for 5.1 (should be fine, just make helper function)
+	root=NULL; 
+	buildTree(source, resolution);//uses helper function that creates a tree and returns the root
+	imgsize = resolution;
+}
+//destructor
+Quadtree::~Quadtree(){
+	clear(root);
+}
+//copy constructor
+Quadtree::Quadtree(Quadtree const &other){
+	imgsize = other.imgsize;
+	root = copy(other.root);
+}
+//overloaded assignment operator
+Quadtree const & Quadtree::operator=(Quadtree const &other){
+	clear(root);
+	imgsize = other.imgsize;
+	root = copy(other.root);
+	return *this;
+}
+//deletes contents and rebuilds tree from new file
+void Quadtree::buildTree(PNG const &source, int resolution){
+	clear(root);
+	root = NULL;
+	imgsize = resolution;
+	root = buildTreeHelper(source, resolution, 0, 0);//uses helper function that creats a tree and returns the root
+}
+//returns pixel at (x,y)
+RGBAPixel Quadtree::getPixel(int x, int y)const {
+	//needs implementation for 5.1
+	if(y>=imgsize||x>=imgsize||imgsize==0)
+		return RGBAPixel(); //returns default RGBAPixek
+	return getHelper(root, x, y, 0, 0, imgsize);
+}
+RGBAPixel Quadtree::getHelper(QuadtreeNode * ptr, int x, int y, int dx, int dy, int d)const{
+	if(ptr==NULL){
+		return RGBAPixel();
+	}
+	if(ptr->neChild == NULL||ptr->nwChild == NULL||ptr->swChild == NULL||ptr->seChild == NULL){
+		return ptr->element;
+	}
+	if(x<dx+d/2&&y<dy+d/2)//nw
+		return getHelper(ptr->nwChild,x,y,dx,dy,d/2);
+	else if(x>=dx+d/2&&y<dy+d/2)//ne
+		return getHelper(ptr->nwChild,x,y,dx+d/2,dy,d/2);
+	else if(x<dx+d/2&&y>=dy+d/2)//sw
+		return getHelper(ptr->nwChild,x,y,dx,dy+d/2,d/2);
+	else if(x>=dx+d/2&&y>=dy+d/2)//se
+		return getHelper(ptr->nwChild,x,y,dx+d/2,dy+d/2,d/2);
+
+	return RGBAPixel();
+}
+//returns the PNG object the tree represents
+PNG Quadtree::decompress()const{
+	//requires implementation for 5.1
+	if(imgsize==0||root==NULL)
+		return PNG(); //returns default PNG 
+	
+	PNG ret = PNG(imgsize,imgsize);
+
+	decompressHelper(root, ret, 0, 0, imgsize);
+	return ret;
+}
+void Quadtree::decompressHelper(QuadtreeNode * ptr, PNG & img, int x, int y, int d)const{
+	if(ptr->neChild==NULL||ptr->nwChild==NULL||ptr->seChild==NULL||ptr->swChild==NULL)
+	{
+		for(int i = x; i<x+d;i++){
+			for(int j = y; j<y+d;j++){
+				*(img(i,j))=ptr->element;
+			}	
+		}
+		return;
+	}
+	else{
+		decompressHelper(ptr->nwChild, img, x,y,d/2);
+		decompressHelper(ptr->neChild, img, x+d/2,y,d/2);
+		decompressHelper(ptr->swChild, img, x,y+d/2,d/2);
+		decompressHelper(ptr->seChild, img, x+d/2,y+d/2,d/2);
+	}
+}
+//rotates 90 degrees clockwise
+void Quadtree::clockwiseRotate(){
+	//requires implementation for 5.2
+	return;
+}
+//compresses the image
+void Quadtree::prune(int tolerance){
+	//implement pl0x for 5.2
+	return;
+}
+//returns size of theoretical compression maybe?
+int Quadtree::pruneSize(int tolerance)const{
+	//implement pl0x for 5.2
+	return -1;
+}
+//returns ideal tolerance for a prune
+int Quadtree::idealPrune(int numLeaves)const{
+	//implement pl0x for 5.2
+	return -1;
+}
+//node default constructor
+Quadtree::QuadtreeNode::QuadtreeNode(){
+	element = RGBAPixel();//set element to default pixel object
+	nwChild = NULL;//set all children to null
+	neChild = NULL;
+	swChild = NULL;
+	seChild = NULL;
+}
+//node constructor with input
+Quadtree::QuadtreeNode::QuadtreeNode(RGBAPixel node){
+	element = node;//set element to argument pixel
+	nwChild = NULL;	//set all children to null			
+	neChild = NULL;				
+	swChild = NULL;				
+	seChild = NULL;				
+}
+//build tree helper function
+Quadtree::QuadtreeNode* Quadtree::buildTreeHelper(const PNG & source, int size, int x, int y)const{
+	//implement please for 
+	if(size==1){
+		QuadtreeNode * ret = new QuadtreeNode;
+		ret->element = *source(x,y);
+		ret->neChild = NULL;
+		ret->nwChild = NULL;
+		ret->seChild = NULL;
+		ret->swChild = NULL;
+		return ret;
+
+	}
+	QuadtreeNode * ret1 = new QuadtreeNode;
+	ret1->nwChild = buildTreeHelper(source, size/2, x,y);
+	ret1->neChild = buildTreeHelper(source, size/2, x+size/2,y);
+	ret1->swChild = buildTreeHelper(source, size/2, x,y+size/2);
+	ret1->seChild = buildTreeHelper(source, size/2, x+size/2,y+size/2);
+
+	ret1->element.red = (ret1->nwChild->element.red+ret1->neChild->element.red+ret1->swChild->element.red+ret1->seChild->element.red)/4;
+	ret1->element.green = (ret1->nwChild->element.green+ret1->neChild->element.green+ret1->swChild->element.green+ret1->seChild->element.green)/4;
+	ret1->element.blue = (ret1->nwChild->element.blue+ret1->neChild->element.blue+ret1->swChild->element.blue+ret1->seChild->element.blue)/4;
+	return ret1;//returns null because its not implemented
+}
+//destructor helper
+void Quadtree::clear(Quadtree::QuadtreeNode* ptr)const{
+	//implement please for 5.1
+	if(ptr==NULL)
+		return;
+	
+	clear(ptr->nwChild);
+	clear(ptr->neChild);
+	clear(ptr->swChild);
+	clear(ptr->seChild);
+	delete ptr;
+
+}
+//copy helper
+Quadtree::QuadtreeNode * Quadtree::copy(const Quadtree::QuadtreeNode* ptr)const{
+	//implement please for 5.1
+	if(ptr==NULL)
+		return NULL;
+	else{
+		QuadtreeNode * ret = new QuadtreeNode;
+		ret->element = ptr->element;
+		ret->swChild = copy(ptr->swChild);
+		ret->swChild = copy(ptr->nwChild);
+		ret->swChild = copy(ptr->seChild);
+		ret->swChild = copy(ptr->neChild);
+		return ret;
+	}
+}

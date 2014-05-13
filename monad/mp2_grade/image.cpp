@@ -1,0 +1,84 @@
+#include "image.h"
+
+
+void Image::flipleft()
+{
+	RGBAPixel *pixelleft;
+	RGBAPixel *pixelright;
+	RGBAPixel *pixel = new RGBAPixel();
+	for(unsigned int i=0;i< (this->width()/2);i++)
+	{
+		for(unsigned int j = 0; j< this->height();j++)
+		{
+			pixelleft = this->operator()(i,j);
+			pixelright = this->operator()(this->width()-i-1,j);
+			*pixel = *pixelleft;
+			*pixelleft = *pixelright;
+			*pixelright = *pixel;
+		}
+	}
+	delete pixel;
+}
+
+void Image::invertcolors()
+{
+	RGBAPixel *pixel;
+	for(unsigned int i=0; i < this->width(); i++)
+	{
+		for(unsigned int j=0; j < this->height(); j++)
+		{
+			pixel = this->operator()(i,j);
+			pixel->red = 255 - pixel->red;
+			pixel->green = 255 - pixel->green;
+			pixel->blue = 255 - pixel->blue;
+		}
+	}
+}
+
+void Image:: adjustbrightness (int r, int g, int b)
+{
+	RGBAPixel *pixel;
+	for(unsigned int i = 0; i < this->width(); i++)
+	{
+		for(unsigned int j = 0; j < this->height(); j++)
+		{
+			pixel = this->operator()(i,j); //pixel = (*this)(i,j);
+			if(pixel->red+r>255)
+			{
+				pixel->red = 255;
+			}
+			else if(pixel->red+r <0)
+			{
+				pixel->red = 0;
+			}
+			else
+			{
+				pixel->red += r;
+			}
+			if(pixel->blue+b>255)
+			{
+				pixel->blue = 255;
+			}
+			else if (pixel->blue+b<0)
+			{
+				pixel->blue=0;
+			}
+			else
+			{
+				pixel->blue += b;
+			}
+			if(pixel->green+g>255)
+			{
+				pixel->green = 255;
+			}
+			else if (pixel->green+g<0)
+			{
+				pixel->green = 0;
+			}
+			else
+			{
+				pixel->green += g;
+			}
+		}
+	}
+}

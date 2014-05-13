@@ -1,0 +1,34 @@
+#include "dictionary.h"
+
+template <class K, class V>
+Dictionary<K, V>::Dictionary()
+{
+}
+
+template <class K, class V>
+void Dictionary<K, V>::insert(const K & key, const V & value)
+{
+}
+
+template <class K, class V>
+void Dictionary<K, V>::remove(const K & key)
+{
+}
+
+template <class K, class V>
+V Dictionary<K, V>::find(const K & key)
+{
+    return V();
+}
+
+template <class K, class V>
+bool Dictionary<K, V>::keyExists(const K & key)
+{
+    return false;
+}
+
+template <class K, class V>
+bool Dictionary<K, V>::isEmpty() const
+{
+    return true;
+}

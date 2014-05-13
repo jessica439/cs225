@@ -1,0 +1,39 @@
+template <class T>
+void ParallelSort::psort(vector<T>* array){
+	if(array->size()-1<100000)
+		psort(array, 0, array->size()-1);
+	else{
+#		pragma omp parallel
+		{
+#		pragma omp single
+			psort(array,0,array->size()-1);
+		}
+	}
+}
+
+template <class T>
+void ParallelSort::psort(vector<T>* array, int left, int right){
+	int i=left, j=right;
+	T tmp;
+	T pivot = array->at((left+right)/2);
+
+	while(i<=j){
+		while (array->at(i)<pivot)
+			i++;
+		while(array->at(j)>pivot)
+			j--;
+		if(i<=j){
+			tmp = array->at(i);
+			array->at(i)=array->at(j);
+			array->at(j)=tmp;
+			i++;
+			j--;
+		}
+	}
+	if(left<j){
+#		pragma omp task
+		psort(array,left,j);
+}
+	if(i<right)
+		psort(array, i, right);
+}

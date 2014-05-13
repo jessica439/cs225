@@ -1,0 +1,86 @@
+// **************************************************************
+// *		   
+// *  quadtree.h
+// *		   
+// *  Quadtree class
+// *		   
+// *  CS 225 Spring 2008
+// *		   
+// **************************************************************
+
+#ifndef QUADTREE_H
+#define QUADTREE_H
+
+#include "png.h"
+
+class Quadtree
+{
+	public:
+	//default constructor
+	Quadtree();
+	//builds a quadtree representing the upper left d by d block of the source image
+	Quadtree(const PNG &source, int resolution);
+	//copy constructor
+	Quadtree(Quadtree const &other);
+	//destructor
+	~Quadtree();
+	//assignment operator
+	Quadtree const & operator=(Quadtree const &other);
+	//deletes current tree and build new one
+	void buildTree(PNG const &source, int resolution);
+	//returns the pixel at given coordinates
+	RGBAPixel getPixel(int x, int y)const;
+	//returns the PNG represented by the tree
+	PNG decompress()const;
+	//rotates image 90 degrees clockwise
+	void clockwiseRotate();
+	//compresses image
+	void prune(int tolerance);
+	//like prune, but doesnt actually prune?
+	int pruneSize(int tolerance)const;
+	//returns minimum tolerance to guarantee ideal something or other
+	int idealPrune(int numLeaves)const;
+	
+	
+	private:
+
+	// A simple class representing a single node of a Quadtree.
+	// You may want to add to this class; in particular, it could probably
+	// use a constructor or two...
+	class QuadtreeNode
+	{
+		public:
+		//default node constructor
+		QuadtreeNode();
+		//creates node with pixel element
+		QuadtreeNode(RGBAPixel node);
+
+		QuadtreeNode* nwChild;  // pointer to northwest child
+		QuadtreeNode* neChild;  // pointer to northeast child
+		QuadtreeNode* swChild;  // pointer to southwest child
+		QuadtreeNode* seChild;  // pointer to southeast child
+
+		RGBAPixel element;  // the pixel stored as this node's "data"
+	};
+	
+	QuadtreeNode* root;    // pointer to root of quadtree
+	
+	//private helper function for buildtree, returns root
+	QuadtreeNode* buildTreeHelper(const PNG & source, int size, int x, int y)const;
+	//destructor helper
+	void clear(Quadtree::QuadtreeNode* ptr)const;
+	//copy helper
+	QuadtreeNode* copy(const Quadtree::QuadtreeNode* ptr)const;
+	//clockwise rotate helper
+	void decompressHelper(QuadtreeNode * ptr, PNG & img, int x, int y, int d)const;
+	int imgsize;
+	RGBAPixel getHelper(QuadtreeNode *ptr, int x, int y, int dx, int dy, int d)const;
+
+
+	
+	/**** Functions added for testing/grading                ****/
+	/**** Do not remove this line or copy its contents here! ****/
+	#include "quadtree_given.h"
+};
+
+#endif

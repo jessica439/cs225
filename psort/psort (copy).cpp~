@@ -1,0 +1,154 @@
+template <class T>
+void ParallelSort::psort(vector<T>* array){
+	if(array->size()-1<100000)
+		psort(array, 0, array->size()-1);
+	else{
+#		pragma omp parallel
+		{
+#		pragma omp single
+			psort(array,0,array->size()-1);
+		}
+	}
+}
+
+template <class T>
+void ParallelSort::psort(vector<T>* array, int left, int right){
+	if(right-left+1<20){
+		//insertionSort(array, left, right);
+		heapSort(array,left,right);		
+		return;
+	}
+	int i=left, j=right;
+	T tmp;
+	T pivot = array->at((left+right)/2);
+
+	while(i<=j){
+		while (array->at(i)<pivot)
+			i++;
+		while(array->at(j)>pivot)
+			j--;
+		if(i<=j){
+			tmp = array->at(i);
+			array->at(i)=array->at(j);
+			array->at(j)=tmp;
+			i++;
+			j--;
+		}
+	}
+	if(left<j){
+#		pragma omp task
+		psort(array,left,j);
+}
+	if(i<right)
+		psort(array, i, right);
+}
+//insertion sort for small lists
+/*template <class T>
+void ParallelSort::insertionSort(vector<T>* array, int left, int right){
+	T key;
+	int j;
+
+	for(int i = left+1; i<right+1;i++){
+		key=array->at(i);
+		j=i-1;
+
+		while(array->at(j)>key && j>=left){
+			array->at(j+1)=array->at(j);
+			j--;
+		}
+		array->at(j+1)=key;
+	}
+}*/
+template <class T>
+void ParallelSort::insertionSort(vector<T>* array,int left, int right){
+	//insertion sort (needs to be implemented) **should work now
+	if(right>left){
+		insertionSort(array,left, right-1); //sort from left to right
+		
+		int position = right -1;//index where right will be inserted
+		
+		while(position >= left && array->at(right)<array->at(position)){
+			position--;
+		}
+
+		position++;
+
+		T temp = array->at(right);
+		for(int i = right - 1; i>=position; i--){
+			array->at(i+1)=array->at(i);
+		}
+		array->at(position)=temp;
+
+	}
+}
+template <class T>
+void ParallelSort::shiftRight(vector<T>* arr, int low, int high)
+{
+    int root = low;
+    while ((root*2)+1 <= high)
+    {
+        int leftChild = (root * 2) + 1;
+        int rightChild = leftChild + 1;
+        int swapIdx = root;
+        /*Check if root is less than left child*/
+        if ((*arr)[swapIdx] < (*arr)[leftChild])
+        {
+            swapIdx = leftChild;
+        }
+        /*If right child exists check if it is less than current root*/
+        if ((rightChild <= high) && ((*arr)[swapIdx] < (*arr)[rightChild]))
+        {
+            swapIdx = rightChild;
+        }
+        /*Make the biggest element of root, left and right child the root*/
+        if (swapIdx != root)
+        {
+            T tmp = (*arr)[root];
+            (*arr)[root] = (*arr)[swapIdx];
+            (*arr)[swapIdx] = tmp;
+            /*Keep shifting right and ensure that swapIdx satisfies
+            heap property aka left and right child of it is smaller than
+            itself*/
+            root = swapIdx;
+        }
+        else
+        {
+            break;
+        }
+    }
+    return;
+}
+template <class T>
+void ParallelSort::heapify(vector<T>* arr, int low, int high)
+{
+    /*Start with middle element. Middle element is chosen in
+    such a way that the last element of array is either its
+    left child or right child*/
+    int midIdx = (high - low -1)/2;
+    while (midIdx >= 0)
+    {
+        shiftRight(arr, midIdx, high);
+        --midIdx;
+    }
+    return;
+}
+template <class T>
+void ParrallelSort::heapSort(vector<T>* arr, int size)
+{
+    //assert(arr);
+    //assert(size > 0);
+    /*This will put max element in the index 0*/
+    heapify(arr, 0, size-1);
+    int high = size - 1;
+    while (high > 0)
+    {
+        /*Swap max element with high index in the array*/
+        T tmp = arr[high];
+        (*arr)[high] = arr[0];
+        (*arr)[0] = tmp;
+        --high;
+        /*Ensure heap property on remaining elements*/
+        shiftRight(arr, 0, high);
+    }
+    return;
+}

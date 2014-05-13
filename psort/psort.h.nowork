@@ -1,0 +1,47 @@
+/**
+ * @file psort.h
+ */
+
+#ifndef _PSORT_H_
+#define _PSORT_H_
+
+#include <iostream>
+#include <vector>
+#include <omp.h>
+
+using std::vector;
+
+namespace ParallelSort
+{
+    /**
+     * Public wrapper for the parallel sort implementation.
+     * @param array The structure to sort
+     */
+    template <class T>
+    void psort(vector<T>* array);
+
+    /**
+     * TODO: add helper functions here.
+     * Note: you can also add additional classes and/or files.
+     * Make sure you follow the instructions in the Makefile.
+     */
+	//parallel sorting
+	template <class T>
+	void psort(vector<T>* array, int left, int right);
+	//non parallel insertion sort
+	template <class T>
+	void insort(vector<T>* array, int left, int right); //might return an array or something
+	//non parallel dpquicksort
+	template <class T>
+	void dpquicksort(vector<T>* array, int left, int right);
+	//switch 2 elements of given vector
+	template <class T>
+	void switchElements(vector<T>* array, int elem1, int elem2);
+	//parallel dpquicksort
+	template <class T>
+	void parDPQSort(vector<T>* array, int left, int right);
+
+}
+
+#include "psort.cpp"
+#endif

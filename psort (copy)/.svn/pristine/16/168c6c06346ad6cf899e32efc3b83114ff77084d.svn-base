@@ -1,0 +1,82 @@
+template <class T>
+void ParallelSort::psort(vector<T>* array){
+	if(array->size()-1<10000)
+		psort(array, 0, array->size()-1);
+	else{
+#		pragma omp parallel
+		{
+#		pragma omp single
+			psort(array,0,array->size()-1);
+		}
+	}
+}
+
+template <class T>
+void ParallelSort::psort(vector<T>* array, int left, int right){
+	if(right-left+1<17){
+		insertionSort(array, left, right);
+		return;
+	}
+	int i=left, j=right;
+	T tmp;
+	T pivot = array->at((left+right)/2);
+
+	while(i<=j){
+		while (array->at(i)<pivot)
+			i++;
+		while(array->at(j)>pivot)
+			j--;
+		if(i<=j){
+			tmp = array->at(i);
+			array->at(i)=array->at(j);
+			array->at(j)=tmp;
+			i++;
+			j--;
+		}
+	}
+	if(left<j){
+#		pragma omp task
+		psort(array,left,j);
+}
+	if(i<right)
+		psort(array, i, right);
+}
+//insertion sort for small lists
+/*template <class T>
+void ParallelSort::insertionSort(vector<T>* array, int left, int right){
+	T key;
+	int j;
+
+	for(int i = left+1; i<right+1;i++){
+		key=array->at(i);
+		j=i-1;
+
+		while(array->at(j)>key && j>=left){
+			array->at(j+1)=array->at(j);
+			j--;
+		}
+		array->at(j+1)=key;
+	}
+}*/
+template <class T>
+void ParallelSort::insertionSort(vector<T>* array,int left, int right){
+	//insertion sort (needs to be implemented) **should work now
+	if(right>left){
+		insertionSort(array,left, right-1); //sort from left to right
+		
+		int position = right -1;//index where right will be inserted
+		
+		while(position >= left && array->at(right)<array->at(position)){
+			position--;
+		}
+
+		position++;
+
+		T temp = array->at(right);
+		for(int i = right - 1; i>=position; i--){
+			array->at(i+1)=array->at(i);
+		}
+		array->at(position)=temp;
+
+	}
+}

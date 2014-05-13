@@ -1,0 +1,142 @@
+/**
+ * @file psort.cpp
+ */
+
+/**
+ * Public wrapper for the parallel sort implementation.
+ * @param array The structure to sort
+ */
+template <class T>
+void ParallelSort::psort(vector<T>* array){
+	if(array->size()-1>300000){
+#		pragma omp parallel
+		{
+#		pragma omp single
+			psort(array, 0, array->size()-1);
+		}
+	}else{
+		psort(array,0,array->size()-1);
+	}
+}
+template <class T>
+void ParallelSort::psort(vector<T>* array,int left, int right)
+{
+	if(right-left<17){//if array is less than 17 items, use non-parallel insertion sort
+		insort(array, left, right);
+		return;
+	}
+	if(right-left<300000){
+//	else{
+		dpquicksort(array,left,right);//if array is less than 10000, use non-parallel dual pivot quicksort
+		return;
+	}
+	parDPQSort(array,left,right);
+}
+template <class T>
+void ParallelSort::insort(vector<T>* array,int left, int right){
+	//insertion sort (needs to be implemented) **should work now
+	if(right>left){
+		insort(array,left, right-1); //sort from left to right
+		
+		int position = right -1;//index where right will be inserted
+		
+		while(position >= left && array->at(right)<array->at(position)){
+			position--;
+		}
+
+		position++;
+
+		T temp = array->at(right);
+		for(int i = right - 1; i>=position; i--){
+			array->at(i+1)=array->at(i);
+		}
+		array->at(position)=temp;
+	}
+}
+template <class T>
+void ParallelSort::dpquicksort(vector<T>* array,int left,int right){
+	//dual-pivot quicksort (needs implementation)
+	T pivot1 = array->at(left);
+	T pivot2 = array->at(right);
+
+	if (pivot1>pivot2){
+		switchElements(array, left, right);
+		pivot1=array->at(left);
+		pivot2=array->at(right);
+	}
+	else if(pivot1==pivot2){
+		int num = 1; //in case the pivots are the same, switch the first pivot with the second, then the third, etc until they arent the same
+		while(pivot1==pivot2 && left<right && left + num<right){
+			switchElements(array, left, left+1);
+			num++;
+		}
+	}
+
+	int i=left+1;
+	int lt=left+1;
+	int gt = right-1;
+
+	while(i<=gt){
+		if(array->at(i)<pivot1){
+			switchElements(array,i++,lt++);
+		}else if(pivot2<array->at(i)){
+			switchElements(array,i,gt--);
+		}else{
+			i++;
+		}
+	}
+	switchElements(array, left, --lt);
+	switchElements(array, right, ++gt);
+
+	psort(array,left,lt-1);
+	psort(array,lt+1,gt-1);
+	psort(array, gt+1, right);
+}
+//switch 2 elements of given vector
+template <class T>
+void ParallelSort::switchElements(vector<T>* array, int elem1, int elem2){
+	T temp = array->at(elem1);
+	array->at(elem1) = array->at(elem2);
+	array->at(elem2) = temp;
+}
+template <class T>
+void ParallelSort::parDPQSort(vector<T>* array, int left, int right){
+//parallel double pivot quick sort (needs implementation)
+	T pivot1 = array->at(left);
+	T pivot2 = array->at(right);
+
+	if (pivot1>pivot2){
+		switchElements(array, left, right);
+		pivot1=array->at(left);
+		pivot2=array->at(right);
+	}
+	else if(pivot1==pivot2){
+		int num = 1; //in case the pivots are the same, switch the first pivot with the second, then the third, etc until they arent the same
+		while(pivot1==pivot2 && left<right && left + num<right){
+			switchElements(array, left, left+1);
+			num++;
+		}
+	}
+
+	int i=left+1;
+	int lt=left+1;
+	int gt = right-1;
+
+	while(i<=gt){
+		if(array->at(i)<pivot1){
+			switchElements(array,i++,lt++);
+		}else if(pivot2<array->at(i)){
+			switchElements(array,i,gt--);
+		}else{
+			i++;
+		}
+	}
+	switchElements(array, left, --lt);
+	switchElements(array, right, ++gt);
+#	pragma omp task
+	psort(array,left,lt-1);
+#	pragma omp task
+	psort(array,lt+1,gt-1);
+	psort(array, gt+1, right);
+//#	pragma omp taskwait
+}
