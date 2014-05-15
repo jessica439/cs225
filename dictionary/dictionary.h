@@ -80,19 +80,30 @@ class Dictionary
 				K getKey();
 				V getData();
 				int getHeight();
+				//pointer array that shows the next pointer for each level of the skiplist
 				SkipNode** fwdNodes;
 
 			private:
+				//height of current node
 				int height;
+				//key of current node
 				K key;
+				//data for current node
 				V data;
 		};
+		//list head
 		SkipNode* head;
+		//list tail
 		SkipNode* tail;
+		//probability of being in a higher list
 		float probability;
+		//maximum height of any node
 		int maxHeight;
+		//height of highest level current node 
 		int curHeight;
+		//returns a new level for a new node based on probability assigned in constructor
 		int newLevel();
+		//number of nodes in the list
 		int size;
 
 };
