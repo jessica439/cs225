@@ -1,3 +1,7 @@
+//Advanced Dictionary Structure for Spring 2014 CS225 Honors Section
+//Implemented with a SkipList of maximum height 5 and height probability .25
+//Kevin Scheer
+
 #include "dictionary.h"
 
 //default skiplist constructor
